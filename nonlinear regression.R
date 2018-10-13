@@ -303,4 +303,164 @@ lines(predict(smooth.spline(x, y, df=20),fx),  lty=2, col='blue', lwd=1.5);
 title('df=20')
 
 ###Demmler & Reinsch Basis
-#Here is how we obtain the DR basis: we first obtain the smoother matrix S (which is not returned y R, so we write our own script to compute it), and then the eigen-vectors of S are basically the DR basis functions.
+#Video: 2018-1_STAT542_6.9_Smoothing Splines in R- NL_SS_R
+#Here is how we obtain the DR basis: we first obtain the smoother matrix S 
+#(which is not returned y R, so we write our own script to compute it), and then the eigen-vectors of S are basically the DR basis functions.
+smooth.matrix = function(x, df){
+  # return the smoother matrix with knots x and degree of freedom = df
+  # this function is for x having unique values
+  n = length(x);
+  A = matrix(0, n, n);
+  for(i in 1:n){
+    y = rep(0, n); y[i]=1;
+    yi = smooth.spline(x, y, df=df)$y;
+    A[,i]= yi;
+  }
+  return((A+t(A))/2)
+}
+fx = 1:50/50
+S4 = smooth.matrix(fx, df=4);#smooth matrix with df4
+S9 = smooth.matrix(fx, df=9);#smooth matrix with df9. smaller lambda value
+tmp = ns(fx, df=9, intercept=TRUE) #projection matrix for regression model with degree 9
+H9 = tmp%*%solve(t(tmp)%*%tmp)%*%t(tmp);
+
+#Obtain the eigen value and eigen vector of the smoother/projection matrices. 
+#The eigen vectors of S4 and S9 should be the same, up to a sign flip.
+#smoother matrix, lambda value irrelavant to df
+# when Di increases, shrinkage more
+eigen.S4 = eigen(S4);
+eigen.S9 = eigen(S9);
+eigen.H9 = eigen(H9);
+
+v4 = eigen.S4$ve;
+v9=  eigen.S9$ve;
+
+par(mfrow=c(3,5));
+for(i in 1:15) {
+  plot(c(min(x), max(x)),c(min(v4, v9), max(v4, v9)), xlab="x", ylab="", 
+       type="n");
+  lines(fx, v4[,i], col=2,lty=1, lwd=2.5);
+  lines(fx, v9[,i], col=3, lty=2, lwd=2.5);}
+
+#Plot the eigen values: Note the first two eigen values are always 1.
+plot(eigen.H9$va, pch=5, col="black", cex=1);
+points(eigen.S4$va, , col="red", xlab='', ylab='eigen values',
+       cex=1.5);
+points(eigen.S9$va, pch=4, col="blue", cex=1);
+lines(c(0,n), c(1, 1), col=8, lty=2, lwd=1);
+legend("topright", pch=c(1,4,5), col=c("red", "blue", "black"),
+       legend=c("SS with df=4", "SS with df=9", "NCS with df=9"))
+
+#Check for the effective degree of freedom
+sum(diag(S4))
+sum(diag(S9))
+sum(diag(H9))
+
+#####LOO-CV and GCV to pick lambda value ######
+fit = smooth.spline(x, y, df=9);
+fit$df
+
+sum(fit$lev) 
+fit$lev  # leveage = diagnal entries of the smoother matrix
+diag(smooth.matrix(x, df =9)) #same as leveage
+fit$cv  # default: GCV
+
+sum((y-fit$y)^2)/(1-fit$df/n)^2/n
+fit=smooth.spline(x, y, df=9, cv=T) # set 'cv=T' to return CV 
+fit$cv #ordinary leave one out cv
+sum(((y-fit$y)/(1-fit$lev))^2)/n
+
+####  Use LOO-CV and GCV to select df. (find the df corrospondinng to the smalleast gcv)
+#Note that same as Ridge regression, smoothing splines could have fractional dfs.
+df = 2+(1:40)/2
+m = length(df)
+mycv = rep(0,m)
+mygcv = rep(0,m)
+for (i in 1:m){
+  fit = smooth.spline(x, y, df=df[i]);
+  mygcv[i] = fit$cv;
+  fit = smooth.spline(x, y, df=df[i], cv=T);
+  mycv[i] = fit$cv
+}
+
+plot(c(1,20), range(mycv, mygcv)+c(-0.5,0.5), xlab='df', 
+     ylab='CV scores', type='n')
+points(df, mycv, col="red", cex=2);
+points(df, mygcv, col="blue", cex=2);
+
+# pick df with min cv
+optdf = df[mygcv==min(mygcv)]
+optdf
+
+#refit model
+fitopt = smooth.spline(x, y, df=optdf);
+plot(x, y, xlab="x", ylab="y")
+lines(predict(fitopt, (1:100)/100),col="red", lwd=2)
+lines(fx, fy, col="gray", lwd=2)
+#################### Kernel Smoothing#########
+
+#Check the three examples from the faraway package.
+library(faraway)
+par(mfrow=c(1,3))
+data(exa)
+#?exa # info for this simulated dataset
+plot (y ~ x, exa, main="Example A")
+lines(m ~ x, exa)
+data(exb)
+#?exb
+plot(y ~ x, exb, main="Example B")
+lines(m ~ x, exb)
+data(faithful)
+#?faithful
+plot(waiting ~ eruptions, faithful,main="old Faithful")
+
+##Kernel smoother with different bandwidths for the Old Faithful data. 
+# bandwidth get larger, get flatter
+?ksmooth
+
+par(mfrow=c(1,3))
+plot(waiting ~ eruptions,
+     faithful,main="bandwidth=0.1", col="gray", cex=0.5)
+lines(ksmooth(faithful$eruptions, faithful$waiting, "normal", 0.1), lwd=2)
+
+plot(waiting ~ eruptions, faithful, main="bandwidth=0.5", col="gray", cex=0.5)
+lines(ksmooth(faithful$eruptions, faithful$waiting,"normal", 0.5), lwd=2)
+
+plot(waiting ~ eruptions, faithful, main="bandwidth=2", col="gray", cex=0.5)
+lines(ksmooth(faithful$eruptions, faithful$waiting, "normal", 2), lwd=2)
+
+# Use CV to select bandwidth
+
+
+
+
+library(sm)
+?hcv
+?sm.options  # check the options
+?sm.regression
+
+par(mfrow=c(1,2))
+hm = hcv(faithful$eruptions,faithful$waiting,display="lines")
+sm.regression(faithful$eruptions, faithful$waiting, h=hm,
+              xlab="duration", ylab="waiting")
+#optimal bandwidth
+hm
+
+## apply cv on example a
+par(mfrow=c(1,2))
+hm=hcv(exa$x, exa$y, display="lines")
+sm.regression(exa$x, exa$y, h=hm, xlab="x", ylab="y")
+
+
+## apply cv on example b
+# hcv(exb$x,exb$y)
+
+# try a smaller hstart, still error
+#par(mfrow=c(1,2))
+#hm = hcv(exb$x, exb$y, dislay = "lines", hstart=0.005)
+#hm
+#sm.regression(exb$x,exb$y,h=0.005)
+# local regression/kernel smooth is not right method for example b
+
+
+
