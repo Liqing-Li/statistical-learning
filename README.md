@@ -6,7 +6,18 @@
 -Lasso
 -Ridge
 -Example
+
+
+#Notes for Regression Tree:
+
+- fit reg tree
+- pruning
+- choosing cp (connection btw cp and alpha)
+- handle categorical predictors
+
+
 #Notes for Nonlinear regression
+
 • Polynomial regression 
   - choice of d (forward/backward/ AIC BIC)
   
@@ -17,6 +28,7 @@
 • Smoothing splines
   - Demmler & Reinsch Basis
   - LOO-CV and GCV to pick lambda value (df)
+  
 • Local regression
   - kernel (local reg with only intercept) and Use CV to select bandwidth
   - local linear or poly reg (Loess)
