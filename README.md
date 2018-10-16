@@ -16,6 +16,30 @@
 - handle categorical predictors
 
 
+
+# Notes for Random forest and GBM regression
+
+• Advantages of ensemble methods based on trees
+– Less-processing is needed, e.g., NA can be handled
+automatically, and no scaling/normalization is required – Can handle large number of predictors
+• GBM vs randomForest
+– randomForest has less number of tuning parameters, while GBM has more, but 
+
+# RandomForest
+
+- Fit a model
+- two types of training error
+- OOB samples
+- variable importance
+
+# GBM
+
+- Fit a model
+- add shrinkage effect
+- test error
+- variable importance
+
+
 #Notes for Nonlinear regression
 
 • Polynomial regression 
