@@ -397,6 +397,13 @@ fitopt = smooth.spline(x, y, df=optdf);
 plot(x, y, xlab="x", ylab="y")
 lines(predict(fitopt, (1:100)/100),col="red", lwd=2)
 lines(fx, fy, col="gray", lwd=2)
+
+
+#################### Local regression #########
+# one example is KNN (local constant)
+#extend: weighted (find weights by kernel(fitting local regression only with intercept))
+#extend: fit local linear or local poly
+
 #################### Kernel Smoothing#########
 
 #Check the three examples from the faraway package.
@@ -462,5 +469,60 @@ sm.regression(exa$x, exa$y, h=hm, xlab="x", ylab="y")
 #sm.regression(exb$x,exb$y,h=0.005)
 # local regression/kernel smooth is not right method for example b
 
+####### Loess #####
+#fit local linear or local poly 
+#?loess
+# default: span = 0.75, degree = 2 (quaradic fcn)
+par(mfrow=c(1,3))
+plot(waiting ~ eruptions, faithful,col="gray", cex=0.5)
+f=loess(waiting ~ eruptions, faithful)
+i = order(faithful$eruptions)
+lines(f$x[i],f$fitted[i], lwd=1.5, col="red")
+
+plot(y ~ x, exa, col="gray", cex=0.5)
+lines(exa$x,exa$m,lty=1)
+f = loess(y ~ x,exa)
+lines(f$x,f$fitted,lty=2, lwd=1.5, col="red")
+f = loess(y ~ x, exa, span=0.22)
+lines(f$x,f$fitted,lty=5, lwd=1.5, col="blue")
+
+plot(y ~ x, exb, col="gray", cex=0.5)
+lines(exb$x,exb$m, lty=1)
+f =loess(y ~ x, exb)
+lines(f$x,f$fitted,lty=2,lwd=1.5, col="red")
+f = loess(y ~ x, exb,span=1)
+lines(f$x,f$fitted,lty=5, lwd=1.5, col="blue")
 
 
+## use cv to select spam
+lo.lev <- function(x1, sp){
+  
+  ## YOUR CODE: compute the diagonal entries of 
+  ##            the smoother matrix S
+  
+}
+
+onestep_CV <- function(x1, y1, sp){
+  
+  ## YOUR CODE: 
+  ## 1) fit a loess model y1 ~ x1 with span = sp, and extract 
+  ##    the corresponding residual vector
+  ## 2) call lo.lev to obtain the diagonal entries of S
+  ## 3) compute LOO-CV and GCV
+  
+  return(list(cv = cv, gcv = gcv))
+}
+
+myCV <- function(x1, y1, span){
+  ## x1, y1: two vectors
+  ## span: a sequence of values for "span"
+  
+  m = length(span)
+  cv = rep(0, m)
+  gcv = rep(0, m)
+  for(i in 1:m){
+    tmp = onestep_CV(x1, y1, span[i])
+    cv[i] = tmp$cv
+    gcv[i] = tmp$gcv
+  }
+  return(list(cv = cv, gcv = gcv))
