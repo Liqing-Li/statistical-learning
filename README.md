@@ -1,6 +1,6 @@
 # statistical-learning
 
-#Notes for Variable Selection :
+# Notes for Variable Selection :
 
 -subset selection
 -Lasso
@@ -8,7 +8,7 @@
 -Example
 
 
-#Notes for Regression Tree:
+# Notes for Regression Tree:
 
 - fit reg tree
 - pruning
@@ -40,7 +40,7 @@ automatically, and no scaling/normalization is required – Can handle large num
 - variable importance
 
 
-#Notes for Nonlinear regression
+# Notes for Nonlinear regression
 
 • Polynomial regression 
   - choice of d (forward/backward/ AIC BIC)
